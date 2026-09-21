@@ -50,6 +50,7 @@ export function TraceHeader() {
             />
           )}
         {aggregatedMetrics.hasGenerationLike &&
+          aggregatedMetrics.totalUsage > 0 &&
           aggregatedMetrics.usageDetails && (
             <UsageBadge
               totalUsage={aggregatedMetrics.totalUsage}
