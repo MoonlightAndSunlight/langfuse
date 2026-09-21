@@ -95,6 +95,7 @@ export function TracePage({
       headerProps={{
         title: traceDetailTitle(trace.data) ?? trace.data.id,
         itemType: "TRACE",
+        divider: false,
         breadcrumb: [
           {
             name: "Traces",
