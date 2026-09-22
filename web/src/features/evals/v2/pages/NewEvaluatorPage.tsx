@@ -1,4 +1,3 @@
-/* eslint-disable no-nested-ternary */
 import { useRouter } from "next/router";
 import { EvalTemplateTypeEnum } from "@langfuse/shared";
 
@@ -37,11 +36,15 @@ export default function NewEvaluatorPage() {
   }
 
   const initialType = requestedEvaluatorType(router.query.type);
-  const creationSource = templateKey
-    ? { type: "managed" as const, templateKey }
-    : evaluatorId
-      ? { type: "custom" as const }
-      : { type: "scratch" as const };
+  const creationSource = (() => {
+    if (templateKey) {
+      return { type: "managed" as const, templateKey };
+    }
+    if (evaluatorId) {
+      return { type: "custom" as const };
+    }
+    return { type: "scratch" as const };
+  })();
 
   return (
     <EvaluatorSetupPage

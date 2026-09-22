@@ -1,4 +1,3 @@
-/* eslint-disable no-nested-ternary */
 import { useSupportDrawer } from "@/src/features/support-chat";
 import { useV4MigrationPanel } from "@/src/features/v4-migration/V4MigrationPanelProvider";
 import { type PropsWithChildren } from "react";
@@ -62,11 +61,15 @@ export function AppContentWithRightDrawer({ children }: PropsWithChildren) {
     return <DynamicMobileRightDrawer>{children}</DynamicMobileRightDrawer>;
   }
 
-  const rightDrawerContent = supportOpen ? (
-    <DynamicSupportDrawer />
-  ) : migrationOpen ? (
-    <DynamicV4MigrationPanel />
-  ) : null;
+  const rightDrawerContent = (() => {
+    if (supportOpen) {
+      return <DynamicSupportDrawer />;
+    }
+    if (migrationOpen) {
+      return <DynamicV4MigrationPanel />;
+    }
+    return null;
+  })();
 
   return (
     <ResizableSplitLayout

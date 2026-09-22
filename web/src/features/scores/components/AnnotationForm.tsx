@@ -714,12 +714,15 @@ function InnerAnnotationForm<Target extends ScoreTarget>({
         if (currentPos < 0 && active !== document.body) return;
         event.preventDefault();
         const delta = event.key === "ArrowDown" ? 1 : -1;
-        const nextPos =
-          currentPos < 0
-            ? delta > 0
-              ? 0
-              : rowEls.length - 1
-            : (currentPos + delta + rowEls.length) % rowEls.length;
+        const nextPos = (() => {
+          if (currentPos < 0) {
+            if (delta > 0) {
+              return 0;
+            }
+            return rowEls.length - 1;
+          }
+          return (currentPos + delta + rowEls.length) % rowEls.length;
+        })();
         rowEls[nextPos].focus();
         return;
       }

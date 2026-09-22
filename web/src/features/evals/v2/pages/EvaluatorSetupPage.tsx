@@ -181,14 +181,19 @@ export function EvaluatorSetupPage(
     projectId,
     evaluatorId: initialEvaluator?.id ?? null,
   });
-  const scoreDataType = initialEvaluator
-    ? initialEvaluator.definition.type === "LLM_AS_JUDGE"
-      ? toScoreOutputFormState(initialEvaluator.definition.outputDefinition)
-          .dataType
-      : getFirstCodeEvaluatorScoreDataType(
-          initialEvaluator.definition.sourceCode,
-        )
-    : undefined;
+  const scoreDataType = (() => {
+    if (initialEvaluator) {
+      if (initialEvaluator.definition.type === "LLM_AS_JUDGE") {
+        return toScoreOutputFormState(
+          initialEvaluator.definition.outputDefinition,
+        ).dataType;
+      }
+      return getFirstCodeEvaluatorScoreDataType(
+        initialEvaluator.definition.sourceCode,
+      );
+    }
+    return undefined;
+  })();
   const projectDefaultModel = useProjectDefaultModel({
     projectId,
     source: "editor",
