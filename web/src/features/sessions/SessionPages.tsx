@@ -38,6 +38,7 @@ import {
   MessageSquareOff,
   ListPlus,
   MoreVertical,
+  Plus,
   SquarePen,
 } from "lucide-react";
 import { useCopyToClipboard } from "@/src/hooks/useCopyToClipboard";
@@ -60,6 +61,7 @@ import {
 import {
   AnnotationQueueItemDropdownMenuController,
   AnnotationQueueItemCountBadge,
+  AnnotationQueueItemSubMenu,
 } from "@/src/features/annotation-queues";
 import {
   useWebCalloutAction,
@@ -107,7 +109,10 @@ import { SessionDetailStoreProvider } from "@/src/features/sessions/SessionDetai
 import { SessionVirtualizedRow } from "@/src/features/sessions/SessionVirtualizedRow";
 import { createSessionDetailStore } from "@/src/features/sessions/sessionDetailStore";
 import { ModernSession } from "@/src/features/sessions/ModernSession";
-import { DropdownMenuTrigger } from "@/src/components/ui/dropdown-menu";
+import {
+  DropdownMenuController,
+  DropdownMenuTrigger,
+} from "@/src/components/ui/dropdown-menu";
 import { HeaderActionButton } from "@/src/components/HeaderActionButton";
 import { ModernSessionHeaderActionsController } from "@/src/features/sessions/ModernSessionHeaderActionsController";
 import useIsFeatureEnabled from "@/src/features/feature-flags/hooks/useIsFeatureEnabled";
@@ -315,6 +320,9 @@ const SessionScores = ({
     </div>
   );
 };
+
+const HEADER_ACTION_CLASS =
+  "text-foreground-secondary hover:bg-accent hover:text-foreground-secondary";
 
 const CopySessionIdButton: React.FC<{
   sessionId: string;
@@ -1605,6 +1613,64 @@ const LoadedSessionEventsPage: React.FC<{
               {webCalloutAction && (
                 <WebCalloutButton action={webCalloutAction} />
               )}
+              <DropdownMenuController
+                align="end"
+                renderMenu={() => (
+                  <AnnotationQueueItemSubMenu
+                    projectId={projectId}
+                    objectId={sessionId}
+                    objectType="SESSION"
+                  />
+                )}
+              >
+                {({ Trigger }) => (
+                  <Trigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn(HEADER_ACTION_CLASS, "gap-1.5")}
+                    >
+                      <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                      Add to
+                      <ChevronDown className="h-3 w-3" aria-hidden="true" />
+                    </Button>
+                  </Trigger>
+                )}
+              </DropdownMenuController>
+              <AnnotateDrawerController projectId={projectId}>
+                {({ disabled, openDrawer }) => (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={disabled}
+                    className={cn(HEADER_ACTION_CLASS, "gap-1.5")}
+                    onClick={() =>
+                      openDrawer({
+                        scoreTarget: { type: "session", sessionId },
+                        scores: session.scores,
+                        analyticsData: {
+                          type: "trace",
+                          source: "TraceDetail",
+                        },
+                        scoreMetadata: {
+                          projectId,
+                          environment: session.environment,
+                        },
+                      })
+                    }
+                  >
+                    {disabled ? (
+                      <LockIcon className="h-3 w-3" />
+                    ) : (
+                      <Plus className="h-3.5 w-3.5" />
+                    )}
+                    Score
+                    {isModernSessionEnabled && annotationCount > 0 ? (
+                      <ActionButtonCountBadge count={annotationCount} />
+                    ) : null}
+                  </Button>
+                )}
+              </AnnotateDrawerController>
               <CommentDrawerController
                 key="comment"
                 projectId={projectId}
@@ -1616,8 +1682,10 @@ const LoadedSessionEventsPage: React.FC<{
                 {({ disabled, openDrawer }) => (
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
+                    size="sm"
                     disabled={disabled}
+                    className={cn(HEADER_ACTION_CLASS, "gap-1.5")}
                     onClick={() =>
                       openDrawer({
                         type: "comments",
@@ -1625,93 +1693,26 @@ const LoadedSessionEventsPage: React.FC<{
                         objectType: "SESSION",
                       })
                     }
-                    className="gap-1"
                   >
                     {disabled ? (
-                      <MessageSquareOff className="text-muted-foreground h-4 w-4" />
+                      <MessageSquareOff className="h-3.5 w-3.5" />
                     ) : (
-                      <>
-                        <MessageSquare className="h-4 w-4" />
-                        <span>Add comment</span>
-                        {getNumberFromMap(
-                          sessionCommentCounts.data,
-                          sessionId,
-                        ) ? (
-                          <ActionButtonCountBadge
-                            count={
-                              getNumberFromMap(
-                                sessionCommentCounts.data,
-                                sessionId,
-                              ) ?? 0
-                            }
-                          />
-                        ) : null}
-                      </>
+                      <MessageSquare className="h-3.5 w-3.5" />
                     )}
+                    Comment
+                    {getNumberFromMap(sessionCommentCounts.data, sessionId) ? (
+                      <ActionButtonCountBadge
+                        count={
+                          getNumberFromMap(
+                            sessionCommentCounts.data,
+                            sessionId,
+                          ) ?? 0
+                        }
+                      />
+                    ) : null}
                   </Button>
                 )}
               </CommentDrawerController>
-              <div className="flex items-start">
-                <AnnotateDrawerController projectId={projectId}>
-                  {({ disabled, openDrawer }) => (
-                    <Button
-                      variant="outline"
-                      size="default"
-                      disabled={disabled}
-                      className="rounded-r-none"
-                      onClick={() =>
-                        openDrawer({
-                          scoreTarget: { type: "session", sessionId },
-                          scores: session.scores,
-                          analyticsData: {
-                            type: "trace",
-                            source: "TraceDetail",
-                          },
-                          scoreMetadata: {
-                            projectId,
-                            environment: session.environment,
-                          },
-                        })
-                      }
-                    >
-                      {disabled ? (
-                        <LockIcon className="mr-1.5 h-3 w-3" />
-                      ) : (
-                        <SquarePen className="mr-1.5 h-4 w-4" />
-                      )}
-                      <span>Annotate</span>
-                      {isModernSessionEnabled && annotationCount > 0 ? (
-                        <span className="ml-1">
-                          <ActionButtonCountBadge count={annotationCount} />
-                        </span>
-                      ) : null}
-                    </Button>
-                  )}
-                </AnnotateDrawerController>
-                <AnnotationQueueItemDropdownMenuController
-                  projectId={projectId}
-                  objectId={sessionId}
-                  objectType="SESSION"
-                >
-                  {({ disabled, totalCount }) => (
-                    <Button
-                      variant="outline"
-                      disabled={disabled !== undefined}
-                      className="rounded-l-none rounded-r-md border-l-2"
-                    >
-                      <span className="relative mr-1 text-xs">
-                        <ChevronDown className="h-3 w-3" />
-                        {totalCount > 0 && (
-                          <AnnotationQueueItemCountBadge
-                            totalCount={totalCount}
-                            layout="toolbar"
-                          />
-                        )}
-                      </span>
-                    </Button>
-                  )}
-                </AnnotationQueueItemDropdownMenuController>
-              </div>
               {!router.query.peek && (
                 <DetailPageNav
                   key="nav"
